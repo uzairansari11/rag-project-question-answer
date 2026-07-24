@@ -1,0 +1,12 @@
+.env
+.env.*
+node
+node_modules/
+dist/
+build/
+coverage/
+*.log
+prisma/dev.db
+prisma/*.db
+prisma/migrations/
+.DS_Store
