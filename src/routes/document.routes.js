@@ -1,9 +1,10 @@
-import express from 'express';
+import { Router } from 'express';
+import { uploadDocumentController } from '../controllers/document.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
+import { uploadDocument } from '../middlewares/upload.middleware.js';
 
-const router = express.Router();
+const router = Router();
 
-router.get('/documents', (req, res) => {
-  res.json({ message: 'document route placeholder' });
-});
+router.post('/upload', authenticate, uploadDocument.single('document'), uploadDocumentController);
 
 export default router;

@@ -37,16 +37,16 @@ model Collection {
 model Document {
   id String @id @default(uuid())
 
-  title      String
-  fileName   String
-  storageKey String
-  mimeType   String
-  fileSize   Int
-
-  status DocumentStatus @default(PROCESSING)
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  fileName     String
+  storageKey   String
+  mimeType     String
+  fileSize     Int
+  errorMessage String?
+  status       DocumentStatus @default(PROCESSING)
+  processedAt  DateTime?
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   collectionId String
   collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)

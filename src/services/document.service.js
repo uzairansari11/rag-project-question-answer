@@ -1,6 +1,35 @@
+import prisma from '../lib/prisma.js';
+import s3Service from './s3.service.js';
+
 class DocumentService {
-  async uploadDocument() {
-    return { ok: true };
+  async uploadDocument({ file, body, userId }) {
+    const uploadedFile = await s3Service.uploadFile(file);
+    try {
+      const document = await prisma.document.create({
+        data: {
+          title: body.title,
+          collectionId: body.collectionId,
+          userId,
+          fileName: uploadedFile.fileName,
+          storageKey: uploadedFile.key,
+          mimeType: uploadedFile.mimeType,
+          fileSize: uploadedFile.fileSize,
+          status: 'PROCESSING',
+        },
+      });
+      return document;
+    } catch (error) {
+      await s3Service.deleteFile(uploadedFile.key);
+
+      throw error;
+    }
+  }
+  async getDocumentById(documentId) {
+    return await prisma.document.findUnique({
+      where: {
+        id: documentId,
+      },
+    });
   }
 }
 
