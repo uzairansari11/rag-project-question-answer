@@ -1,3 +1,5 @@
+import EmbeddingService from '../services/ embedding.service.js';
+import chunkService from '../services/chunk.service.js';
 import documentService from '../services/document.service.js';
 import pdfService from '../services/pdf.service.js';
 import s3Service from '../services/s3.service.js';
@@ -5,19 +7,19 @@ import s3Service from '../services/s3.service.js';
 export async function processDocumentJob(job) {
   const { documentId, userId, fileName } = job.data;
 
-  const document = await documentService.getDocumentById(documentId);
+  const file = await documentService.getDocumentById(documentId);
 
-  const pdfBuffer = await s3Service.getFile(document.storageKey);
+  const pdfBuffer = await s3Service.getFile(file.storageKey);
 
-  const extractedChunks = await pdfService.extractText(pdfBuffer, {
+  const documents = await pdfService.extractText(pdfBuffer, {
     userId,
     documentId,
     fileName,
   });
 
-  console.log(extractedChunks);
+  const chunks = await chunkService.splitDocuments(documents);
 
-  console.log(pdfBuffer instanceof Buffer);
+  const embeddings = await EmbeddingService.generateEmbeddings(chunks);
 
-  console.log(pdfBuffer.length);
+  console.log(embeddings);
 }

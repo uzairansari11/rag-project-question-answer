@@ -1,5 +1,7 @@
-export const openaiConfig = {
-  apiKey: process.env.OPENAI_API_KEY || '',
-};
+import OpenAI from 'openai';
 
-export default openaiConfig;
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+export default openai;
