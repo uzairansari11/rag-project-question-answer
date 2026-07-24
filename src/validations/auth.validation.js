@@ -15,3 +15,15 @@ export const registerSchema = z.object({
 
   query: z.object({}),
 });
+
+// validations/auth.validation.js
+
+export const loginSchema = z.object({
+  body: z.object({
+    email: z.email().trim().toLowerCase(),
+    password: z.string().min(1, 'Password is required'),
+  }),
+
+  params: z.object({}),
+  query: z.object({}),
+});

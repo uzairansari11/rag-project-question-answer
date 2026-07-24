@@ -1,9 +1,15 @@
 import { asyncHandler } from '../middlewares/async.handler.js';
 import authService from '../services/auth.service.js';
 
-export const login = (req, res) => {
-  res.json({ message: 'auth controller placeholder' });
-};
+export const login = asyncHandler(async (req, res) => {
+  const data = await authService.login(req.body);
+
+  res.status(200).json({
+    success: true,
+    message: 'Login successful',
+    data,
+  });
+});
 
 export const register = asyncHandler(async (req, res) => {
   const user = await authService.register(req.body);

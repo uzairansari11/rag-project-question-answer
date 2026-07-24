@@ -1,6 +1,44 @@
+import bcrypt from 'bcrypt';
 import prisma from '../lib/prisma.js';
-import bcrypt from "bcrypt"
+import { generateAccessToken } from '../utils/jwt.js';
+
+const DEFAULT_COLLECTION = {
+  title: 'My Collection',
+  description: 'Default collection',
+};
+
 class AuthService {
+  async login({ email, password }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new ApiError(401, 'Invalid email or password');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new ApiError(401, 'Invalid email or password');
+    }
+
+    const accessToken = generateAccessToken({
+      userId: user.id,
+    });
+
+    return {
+      accessToken,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      },
+    };
+  }
   async register(payload) {
     const { firstName, lastName, email, password } = payload;
     const existingUser = await prisma.user.findUnique({
@@ -23,6 +61,11 @@ class AuthService {
         lastName,
         email,
         password: hashedPassword,
+        collections: {
+          create: {
+            ...DEFAULT_COLLECTION,
+          },
+        },
       },
       select: {
         id: true,
@@ -30,6 +73,11 @@ class AuthService {
         lastName: true,
         email: true,
         createdAt: true,
+        collections: {
+          select: {
+            title: true,
+          },
+        },
       },
     });
     return user;
