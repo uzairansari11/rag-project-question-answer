@@ -1,4 +1,4 @@
-import { asyncHandler } from '../middlewares/async.handler.js';
+import { asyncHandler } from '../utils/async.handler.js';
 import authService from '../services/auth.service.js';
 
 export const login = asyncHandler(async (req, res) => {
