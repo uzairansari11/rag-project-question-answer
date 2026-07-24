@@ -9,14 +9,14 @@ export const uploadDocumentController = asyncHandler(async (req, res) => {
     body: req.body,
     userId: req.user.id,
   });
+
   await documentQueue.add(JOB_NAMES.PROCESS_DOCUMENT, {
     documentId: result.id,
     userId: req.user.id,
+    fileName: result.fileName,
   });
   res.status(201).json({
     success: true,
     message: 'File uploaded successfully',
-    file: result.file,
-    body: result.body,
   });
 });
