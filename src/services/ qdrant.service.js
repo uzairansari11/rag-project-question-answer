@@ -16,7 +16,6 @@ class QdrantService {
   async createCollection() {
     try {
       const checkCollection = await qdrant.getCollection(process.env.QDRANT_COLLECTION);
-      console.log('Collection already exists.');
       return;
     } catch (error) {
       await qdrant.createCollection(process.env.QDRANT_COLLECTION, {
@@ -25,19 +24,35 @@ class QdrantService {
           size: 1536,
         },
       });
-
-      console.log('Collection created.');
     }
   }
 
   async upsertEmbedding(embedding) {
     const points = this.#toPoints(embedding);
-    console.log('points is here', points[0]);
 
     await qdrant.upsert(process.env.QDRANT_COLLECTION, {
       wait: true,
       points,
     });
+  }
+
+  async search({ query, filter = {}, limit = 10 }) {
+    const response = await qdrant.query(process.env.QDRANT_COLLECTION, {
+      query: vector,
+      limit,
+      with_payload: true,
+      filter: {
+        must: [
+          {
+            key: 'userId',
+            match: {
+              value: filter.userId,
+            },
+          },
+        ],
+      },
+    });
+    return response.points;
   }
 }
 

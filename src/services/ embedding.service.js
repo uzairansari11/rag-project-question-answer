@@ -21,6 +21,13 @@ class EmbeddingService {
       };
     });
   }
+  async generateQueryEmbedding(query) {
+    const response = await openai.embeddings.create({
+      model: 'text-embedding-3-small',
+      input: query,
+    });
+    return response.data[0].embedding;
+  }
 }
 
 export default new EmbeddingService();
