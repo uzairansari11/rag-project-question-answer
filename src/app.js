@@ -5,6 +5,8 @@ import AuthRoute from './routes/auth.routes.js';
 import ChatRoute from './routes/chat.routes.js';
 import CollectionRoute from './routes/collection.route.js';
 import DocumentRoute from './routes/document.routes.js';
+import MessageRoute from './routes/message.routes.js';
+
 const app = express();
 
 app.use(express.json());
@@ -17,6 +19,7 @@ app.use('/auth', AuthRoute);
 app.use('/collection', CollectionRoute);
 app.use('/documents', DocumentRoute);
 app.use('/chat', ChatRoute);
+app.use('/chat', MessageRoute);
 
 app.use(notFound);
 app.use(errorHandler);
