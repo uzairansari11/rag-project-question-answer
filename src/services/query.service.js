@@ -1,8 +1,9 @@
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
-
-import { QUERY_REWRITE_PROMPT, STEP_BACK_PROMPT, SUB_QUERY_PROMPT } from '../prompts/index.js';
+import { QUERY_REWRITE_PROMPT } from '../prompt/rewrite.prompt.js';
+import { STEP_BACK_PROMPT } from '../prompt/step-back.prompt.js';
+import { SUB_QUERY_PROMPT } from '../prompt/sub-query.prompt.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
