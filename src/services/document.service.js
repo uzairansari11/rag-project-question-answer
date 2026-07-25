@@ -31,6 +31,18 @@ class DocumentService {
       },
     });
   }
+
+  async updateStatus(documentId, status, error = null) {
+    return prisma.document.update({
+      where: {
+        id: documentId,
+      },
+      data: {
+        status: status,
+        errorMessage: error,
+      },
+    });
+  }
 }
 
 export default new DocumentService();
