@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 
+import { HISTORY_AWARE_PROMPT } from '../prompt/history-aware.prompt.js';
 import { QUERY_REWRITE_PROMPT } from '../prompt/rewrite.prompt.js';
 import { STEP_BACK_PROMPT } from '../prompt/step-back.prompt.js';
 import { SUB_QUERY_PROMPT } from '../prompt/sub-query.prompt.js';
@@ -13,6 +14,9 @@ const openai = new OpenAI({
 // =====================
 // Zod Schemas
 // =====================
+const HistoryAwareSchema = z.object({
+  standaloneQuery: z.string(),
+});
 
 const RewriteSchema = z.object({
   rewrittenQuery: z.string(),
@@ -26,8 +30,14 @@ const SubQuerySchema = z.object({
   queries: z.array(z.string()).min(1).max(5),
 });
 
+function formatHistory(history) {
+  return history
+    .map(({ role, content }) => `${role === 'USER' ? 'User' : 'Assistant'}: ${content}`)
+    .join('\n');
+}
+
 class QueryService {
-  async #generate({ prompt, query, schema, schemaName }) {
+  async #generate({ prompt, query, schema, schemaName, messages }) {
     const response = await openai.chat.completions.parse({
       model: 'gpt-4.1-mini',
       messages: [
@@ -35,10 +45,12 @@ class QueryService {
           role: 'system',
           content: prompt,
         },
-        {
-          role: 'user',
-          content: query,
-        },
+        ...(messages ?? [
+          {
+            role: 'user',
+            content: query,
+          },
+        ]),
       ],
       response_format: zodResponseFormat(schema, schemaName),
     });
@@ -85,6 +97,29 @@ class QueryService {
     return queries;
   }
 
+  async historyAwareRewrite({ history, query }) {
+    const historyText = formatHistory(history);
+
+    const { standaloneQuery } = await this.#generate({
+      prompt: HISTORY_AWARE_PROMPT,
+      messages: [
+        {
+          role: 'user',
+          content: `
+                  Conversation History:
+                  ${historyText}
+
+                  Latest User Question:
+                  ${query}
+        `.trim(),
+        },
+      ],
+      schema: HistoryAwareSchema,
+      schemaName: 'history_aware_query',
+    });
+
+    return standaloneQuery;
+  }
   async process(query) {
     const rewrittenQuery = await this.rewrite(query);
 

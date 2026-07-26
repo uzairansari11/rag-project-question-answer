@@ -9,7 +9,7 @@ class GuardrailService {
         reason: 'No relevant documents found.',
       };
     }
-    const highestScore = chunks[0].score;
+    const highestScore = Math.max(...chunks.map((chunk) => chunk.score));
 
     if (highestScore < this.#SCORE_THRESHOLD) {
       return {
@@ -17,7 +17,7 @@ class GuardrailService {
         reason: 'Question is unrelated to uploaded documents.',
       };
     }
-    const classification = await llmService.classifyQuestion({
+    const classification = await llmService.classify({
       query,
       chunks,
     });

@@ -17,8 +17,6 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   // Guardrail Response
   if (type === 'guardrail') {
-    await messageService.createAssistantMessage(req.params.chatId, message);
-
     res.write(
       `data: ${JSON.stringify({
         type: 'token',

@@ -1,3 +1,4 @@
+import { zodResponseFormat } from 'openai/helpers/zod.mjs';
 import { z } from 'zod';
 import openai from '../config/openai.js';
 import { buildAnswerPrompt } from '../prompt/answer.prompt.js';
@@ -58,7 +59,7 @@ class LLMService {
       .map(
         (chunk, index) => `
                   Chunk ${index + 1}
-                  ${chunk.payload.content}
+                  ${chunk.payload.text}
                   `,
       )
       .join('\n\n');
@@ -72,7 +73,7 @@ class LLMService {
               Retrieved Context:
               ${context}
               `,
-      schema: guardrailSchema,
+      schema: GuardrailSchema,
       schemaName: 'GuardrailResponse',
     });
   }

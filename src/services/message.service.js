@@ -6,26 +6,36 @@ import { ApiError } from '../utils/api-error.js';
 import contextService from './context.service.js';
 import guardrailService from './guardrail.service.js';
 import llmService from './llm.service.js';
+import queryService from './query.service.js';
 import retrievalService from './retrieval.service.js';
 
 class MessageService {
   async sendMessage(userId, chatId, payload) {
+    const history = await this.getChatHistory(chatId);
+
     const chat = await this.validateChat(userId, chatId);
 
     const userMessage = await this.createUserMessage(chat.id, payload.message);
 
+    const standaloneQuery = await queryService.historyAwareRewrite({
+      history,
+      query: payload.message,
+    });
+
     const documentIds = await this.getChatDocuments(chat.id);
 
     const chunks = await retrievalService.retrieve({
-      query: payload.message,
+      query: standaloneQuery,
       documentIds,
       userId,
       limit: 10,
     });
+
     const guardrail = await guardrailService.validate({
       query: payload.message,
       chunks,
     });
+
     if (!guardrail.allowed) {
       await this.createAssistantMessage(chat.id, guardrail.reason);
       return {
@@ -120,6 +130,22 @@ class MessageService {
         },
       },
     });
+  }
+
+  async getRecentHistory(chatId, limit = 8) {
+    const messages = await prisma.message.findMany({
+      where: { chatId },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+      select: {
+        role: true,
+        content: true,
+      },
+    });
+
+    return messages.reverse();
   }
 }
 
