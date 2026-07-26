@@ -2,7 +2,7 @@ import { cohere } from '../config/cohere.js';
 
 class ReRankingService {
   async rerank({ query, chunks, topN = 10 }) {
-    const document = chunks.map((chunk) => chunk.payload.text);
+    const documents = chunks.map((chunk) => chunk.payload.text);
 
     const response = await cohere.rerank({
       model: 'rerank-v3.5',

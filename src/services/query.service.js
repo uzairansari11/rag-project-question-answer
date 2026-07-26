@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
+
 import { QUERY_REWRITE_PROMPT } from '../prompt/rewrite.prompt.js';
 import { STEP_BACK_PROMPT } from '../prompt/step-back.prompt.js';
 import { SUB_QUERY_PROMPT } from '../prompt/sub-query.prompt.js';
@@ -10,7 +11,7 @@ const openai = new OpenAI({
 });
 
 // =====================
-// Private Schemas
+// Zod Schemas
 // =====================
 
 const RewriteSchema = z.object({
@@ -27,9 +28,9 @@ const SubQuerySchema = z.object({
 
 class QueryService {
   async #generate({ prompt, query, schema, schemaName }) {
-    const response = await openai.responses.parse({
+    const response = await openai.chat.completions.parse({
       model: 'gpt-4.1-mini',
-      input: [
+      messages: [
         {
           role: 'system',
           content: prompt,
@@ -39,12 +40,16 @@ class QueryService {
           content: query,
         },
       ],
-      text: {
-        format: zodResponseFormat(schema, schemaName),
-      },
+      response_format: zodResponseFormat(schema, schemaName),
     });
 
-    return response.output_parsed;
+    const parsed = response.choices[0]?.message?.parsed;
+
+    if (!parsed) {
+      throw new Error('Failed to parse structured response from OpenAI.');
+    }
+
+    return parsed;
   }
 
   async rewrite(query) {

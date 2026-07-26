@@ -6,11 +6,11 @@ import ChatRoute from './routes/chat.routes.js';
 import CollectionRoute from './routes/collection.route.js';
 import DocumentRoute from './routes/document.routes.js';
 import MessageRoute from './routes/message.routes.js';
-
+import cors from "cors"
 const app = express();
 
 app.use(express.json());
-
+app.use(cors())
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });

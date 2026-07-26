@@ -60,12 +60,49 @@ class ChatService {
         title: true,
         createdAt: true,
         updatedAt: true,
+        isPinned: true,
       },
     });
 
     return chats;
   }
+  async getChat(userId, chatId) {
+    const chats = await prisma.chat.findFirstOrThrow({
+      where: {
+        userId,
+        id: chatId,
+      },
+      include: {
+        messages: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
+    return chats;
+  }
+  async deleteChat(userId, chatId) {
+    const chats = await prisma.chat.delete({
+      where: {
+        userId,
+        id: chatId,
+      },
+    });
+
+    return chats;
+  }
+  async updateChat(userId, chatId, payload) {
+    const chat = await prisma.chat.update({
+      where: {
+        userId,
+        id: chatId,
+      },
+      data: payload,
+    });
+
+    return chat;
+  }
   async chat({ query, userId }) {
     // Retrieve relevant chunks
     const chunks = await retrievalService.retrieve({

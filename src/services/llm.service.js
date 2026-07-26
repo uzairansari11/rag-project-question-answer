@@ -11,8 +11,9 @@ class LLMService {
       context,
     });
 
-    const response = await openai.chat.completions.create({
+    return await openai.chat.completions.create({
       model: this.#model,
+      stream: true,
       messages: [
         {
           role: 'system',
@@ -25,8 +26,6 @@ class LLMService {
       ],
       temperature: 0,
     });
-
-    return response.choices[0].message.content;
   }
 }
 

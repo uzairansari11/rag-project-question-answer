@@ -1,6 +1,17 @@
 // collection.service.js
 
 import prisma from '../lib/prisma.js';
+import { ApiError } from '../utils/api-error.js';
+
+const documentSelect = {
+  id: true,
+  title: true,
+  fileName: true,
+  status: true,
+  collectionId: true,
+  createdAt: true,
+  updatedAt: true,
+};
 
 class CollectionService {
   async getCollections(userId) {
@@ -14,6 +25,11 @@ class CollectionService {
         description: true,
         createdAt: true,
         updatedAt: true,
+        _count: {
+          select: {
+            documents: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -21,6 +37,30 @@ class CollectionService {
     });
   }
 
+  async getCollection(userId, collectionId) {
+    return prisma.collection.findFirst({
+      where: {
+        userId,
+        id: collectionId,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+        documents: {
+          select: documentSelect,
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
   async createCollection(userId, payload) {
     const { title, description } = payload;
 
@@ -46,6 +86,9 @@ class CollectionService {
         title: true,
         description: true,
         createdAt: true,
+        documents: {
+          select: documentSelect,
+        },
       },
     });
   }

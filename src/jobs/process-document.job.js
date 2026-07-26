@@ -1,9 +1,9 @@
 import { DocumentStatus } from '@prisma/client';
-import EmbeddingService from '../services/ embedding.service.js';
-import QdrantService from '../services/ qdrant.service.js';
 import chunkService from '../services/chunk.service.js';
 import documentService from '../services/document.service.js';
+import EmbeddingService from '../services/embedding.service.js';
 import pdfService from '../services/pdf.service.js';
+import QdrantService from '../services/qdrant.service.js';
 import s3Service from '../services/s3.service.js';
 
 export async function processDocumentJob(job) {

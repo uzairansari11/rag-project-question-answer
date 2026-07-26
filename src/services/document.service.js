@@ -31,7 +31,33 @@ class DocumentService {
       },
     });
   }
-
+  async getDocuments(userId) {
+    return await prisma.document.findMany({
+      where: {
+        userId: userId,
+      },
+      select: {
+        id: true,
+        title: true,
+        fileName: true,
+        storageKey: true,
+        mimeType: true,
+        fileSize: true,
+        errorMessage: true,
+        status: true,
+        processedAt: true,
+        createdAt: true,
+        collection: {
+          select: {
+            title: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
   async updateStatus(documentId, status, error = null) {
     return prisma.document.update({
       where: {

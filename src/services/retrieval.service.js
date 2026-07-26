@@ -1,11 +1,13 @@
-import embeddingService from './ embedding.service.js';
-import qdrantService from './ qdrant.service.js';
-import rerankService from './ rerank.service.js';
+import embeddingService from './embedding.service.js';
+import qdrantService from './qdrant.service.js';
 import queryService from './query.service.js';
+import rerankService from './rerank.service.js';
 
 class RetrievalService {
-  async retrieve({ query, userId }) {
+  async retrieve({ query, userId, documentIds }) {
     const processedQuery = await queryService.process(query);
+
+    console.log('processedQuery', processedQuery);
     const queries = [
       processedQuery.rewrittenQuery,
       processedQuery.stepBackQuery,
@@ -17,7 +19,15 @@ class RetrievalService {
     );
 
     const searchResults = await Promise.all(
-      embeddings.map((embedding) => qdrantService.search({ query: embedding, filter: { userId } })),
+      embeddings.map((embedding) =>
+        qdrantService.search({
+          query: embedding,
+          filter: {
+            userId,
+            documentIds,
+          },
+        }),
+      ),
     );
 
     const chunks = searchResults.flat();

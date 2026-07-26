@@ -82,6 +82,23 @@ class AuthService {
     });
     return user;
   }
+
+  async profile(userId) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        firstName: true,
+        email: true,
+        lastName: true,
+        createdAt: true,
+        updatedAt: true,
+        id: true,
+      },
+    });
+    return user;
+  }
 }
 
 export default new AuthService();

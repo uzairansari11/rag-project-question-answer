@@ -32,6 +32,16 @@ export const getChatSchema = z.object({
   query: z.object({}),
 });
 
+export const updateChatsSchema = z.object({
+  body: z.object({
+    title: z.string().min(3, 'Chat title must be at least 3 characters.').optional(),
+    isPinned: z.boolean().optional(),
+  }),
+  params: z.object({
+    chatId: z.uuid(),
+  }),
+  query: z.object({}),
+});
 export const deleteChatSchema = z.object({
   body: z.object({}),
 
