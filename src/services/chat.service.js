@@ -67,7 +67,7 @@ class ChatService {
     return chats;
   }
   async getChat(userId, chatId) {
-    const chats = await prisma.chat.findFirstOrThrow({
+    const chats = await prisma.chat.findFirst({
       where: {
         userId,
         id: chatId,
