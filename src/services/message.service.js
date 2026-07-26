@@ -4,6 +4,7 @@ import { MessageRole } from '@prisma/client';
 import prisma from '../lib/prisma.js';
 import { ApiError } from '../utils/api-error.js';
 import contextService from './context.service.js';
+import guardrailService from './guardrail.service.js';
 import llmService from './llm.service.js';
 import retrievalService from './retrieval.service.js';
 
@@ -19,8 +20,21 @@ class MessageService {
       query: payload.message,
       documentIds,
       userId,
+      limit: 10,
     });
-
+    const guardrail = await guardrailService.validate({
+      query: payload.message,
+      chunks,
+    });
+    if (!guardrail.allowed) {
+      await this.createAssistantMessage(chat.id, guardrail.reason);
+      return {
+        stream: null,
+        sources: [],
+        message: guardrail.reason,
+        type: 'guardrail',
+      };
+    }
     const context = contextService.build(chunks);
 
     const stream = await llmService.generate({

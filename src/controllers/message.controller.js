@@ -2,19 +2,45 @@ import messageService from '../services/message.service.js';
 import { asyncHandler } from '../utils/async.handler.js';
 
 export const sendMessage = asyncHandler(async (req, res) => {
-  const { stream, sources } = await messageService.sendMessage(
-    req.user.id,
-    req.params.chatId,
-    req.body,
-  );
-
   // SSE Headers
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
-  // Flush headers immediately
   res.flushHeaders?.();
+
+  const { stream, sources, type, message } = await messageService.sendMessage(
+    req.user.id,
+    req.params.chatId,
+    req.body,
+  );
+
+  // Guardrail Response
+  if (type === 'guardrail') {
+    await messageService.createAssistantMessage(req.params.chatId, message);
+
+    res.write(
+      `data: ${JSON.stringify({
+        type: 'token',
+        content: message,
+      })}\n\n`,
+    );
+
+    res.write(
+      `data: ${JSON.stringify({
+        type: 'sources',
+        sources: [],
+      })}\n\n`,
+    );
+
+    res.write(
+      `data: ${JSON.stringify({
+        type: 'done',
+      })}\n\n`,
+    );
+
+    return res.end();
+  }
 
   let answer = '';
 
@@ -34,10 +60,8 @@ export const sendMessage = asyncHandler(async (req, res) => {
       );
     }
 
-    // Save assistant response
     await messageService.createAssistantMessage(req.params.chatId, answer);
 
-    // Send sources
     res.write(
       `data: ${JSON.stringify({
         type: 'sources',
@@ -45,7 +69,6 @@ export const sendMessage = asyncHandler(async (req, res) => {
       })}\n\n`,
     );
 
-    // Notify completion
     res.write(
       `data: ${JSON.stringify({
         type: 'done',

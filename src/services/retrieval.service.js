@@ -4,10 +4,9 @@ import queryService from './query.service.js';
 import rerankService from './rerank.service.js';
 
 class RetrievalService {
-  async retrieve({ query, userId, documentIds }) {
+  async retrieve({ query, userId, documentIds, limit = 10 }) {
     const processedQuery = await queryService.process(query);
 
-    console.log('processedQuery', processedQuery);
     const queries = [
       processedQuery.rewrittenQuery,
       processedQuery.stepBackQuery,
@@ -22,6 +21,7 @@ class RetrievalService {
       embeddings.map((embedding) =>
         qdrantService.search({
           query: embedding,
+          limit: limit,
           filter: {
             userId,
             documentIds,
