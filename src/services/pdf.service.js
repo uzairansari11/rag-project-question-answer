@@ -48,10 +48,11 @@ class PdfService {
   async extractText(pdfBuffer, metadata) {
     const documents = await this.parse(pdfBuffer, metadata);
 
-    return documents.map((document) => ({
-      pageContent: document.pageContent,
-      metadata: document.metadata,
-    }));
+    const text = documents
+      .map((document) => `--- Page ${document.metadata.page} ---\n${document.pageContent}`)
+      .join('\n\n');
+
+    return { documents, text };
   }
 }
 

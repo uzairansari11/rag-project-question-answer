@@ -8,19 +8,19 @@ import s3Service from '../services/s3.service.js';
 
 export async function processDocumentJob(job) {
   const { documentId, userId, fileName } = job.data;
+
   try {
-    // 1. Processing started
-    await documentService.updateStatus(documentId, DocumentStatus.PROCESSING);
+    const document = await documentService.getDocumentById(documentId);
 
-    const file = await documentService.getDocumentById(documentId);
+    const pdfBuffer = await s3Service.getFile(document.storageKey);
 
-    const pdfBuffer = await s3Service.getFile(file.storageKey);
-
-    const documents = await pdfService.extractText(pdfBuffer, {
+    const { documents, text } = await pdfService.extractText(pdfBuffer, {
       userId,
       documentId,
       fileName,
     });
+
+    const { key: textKey } = await s3Service.uploadText(documentId, text);
 
     const chunks = await chunkService.splitDocuments(documents);
 
@@ -28,10 +28,16 @@ export async function processDocumentJob(job) {
 
     await QdrantService.upsertEmbedding(embeddings);
 
-    // 8. Mark completed
-    await documentService.updateStatus(documentId, DocumentStatus.COMPLETED);
+    await documentService.updateDocument(documentId, {
+      textKey,
+      status: DocumentStatus.COMPLETED,
+      errorMessage: null,
+    });
   } catch (error) {
-    await documentService.updateStatus(documentId, DocumentStatus.FAILED);
+    await documentService.updateDocument(documentId, {
+      status: DocumentStatus.FAILED,
+      errorMessage: error.message,
+    });
 
     throw error;
   }

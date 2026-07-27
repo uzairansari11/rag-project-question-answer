@@ -1,12 +1,14 @@
+import crypto from 'node:crypto';
 import prisma from '../lib/prisma.js';
 import s3Service from './s3.service.js';
-
 class DocumentService {
   async uploadDocument({ file, body, userId }) {
-    const uploadedFile = await s3Service.uploadFile(file);
+    const documentId = crypto.randomUUID();
+    const uploadedFile = await s3Service.uploadFile(documentId, file);
     try {
       const document = await prisma.document.create({
         data: {
+          id: documentId,
           title: body.title,
           collectionId: body.collectionId,
           userId,
@@ -58,15 +60,12 @@ class DocumentService {
       },
     });
   }
-  async updateStatus(documentId, status, error = null) {
+  async updateDocument(documentId, data) {
     return prisma.document.update({
       where: {
         id: documentId,
       },
-      data: {
-        status: status,
-        errorMessage: error,
-      },
+      data,
     });
   }
 }

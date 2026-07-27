@@ -41,6 +41,8 @@ model Document {
   title        String
   fileName     String
   storageKey   String
+  // for storing text only
+  textKey      String?
   mimeType     String
   fileSize     Int
   errorMessage String?
@@ -55,6 +57,7 @@ model Document {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   chatDocuments ChatDocument[]
+  podcasts      Podcast[]
 }
 
 enum DocumentStatus {
@@ -82,9 +85,9 @@ model Chat {
   messages      Message[]
   chatDocuments ChatDocument[]
   isPinned      Boolean        @default(false)
-  
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum MessageRole {
@@ -103,4 +106,36 @@ model Message {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum PodcastStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model Podcast {
+  id String @id @default(uuid())
+
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  title       String?
+  description String?
+
+  language String @default("en")
+
+  status PodcastStatus @default(PENDING)
+
+  scriptKey String?
+  audioKey  String?
+
+  durationSeconds Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([documentId])
+  @@index([status])
 }

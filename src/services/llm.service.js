@@ -3,12 +3,15 @@ import { z } from 'zod';
 import openai from '../config/openai.js';
 import { buildAnswerPrompt } from '../prompt/answer.prompt.js';
 import { GUARDRAIL_PROMPT } from '../prompt/input-guardrail.prompt.js';
+import { PODCAST_PROMPT } from '../prompt/podcast.prompt.js';
 import { SYSTEM_PROMPT } from '../prompt/system.prompt.js';
+import { PodcastSchema } from '../schema/podcast.schema.js';
 
 const GuardrailSchema = z.object({
   allowed: z.boolean(),
   reason: z.string(),
 });
+
 class LLMService {
   #model = 'gpt-4.1-mini';
 
@@ -75,6 +78,15 @@ class LLMService {
               `,
       schema: GuardrailSchema,
       schemaName: 'GuardrailResponse',
+    });
+  }
+
+  async generatePodcast({ document }) {
+    return this.#generate({
+      prompt: PODCAST_PROMPT,
+      query: document,
+      schema: PodcastSchema,
+      schemaName: 'PodcastResponse',
     });
   }
 }
