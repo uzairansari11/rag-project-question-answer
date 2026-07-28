@@ -23,3 +23,14 @@ export const getPodcasts = asyncHandler(async (req, res) => {
     status: 200,
   });
 });
+
+export const getPodcast = asyncHandler(async (req, res) => {
+  const podcasts = await podcastService.getPodcast(req.params.podcastId, req.user.id);
+
+  return successResponse({
+    res,
+    data: podcasts,
+    message: 'Podcast fetch successfully.',
+    status: 200,
+  });
+});

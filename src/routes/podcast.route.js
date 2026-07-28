@@ -1,10 +1,12 @@
 import { Router } from 'express';
-import { generatePodcast, getPodcasts } from '../controllers/podcast.controller.js';
+import { generatePodcast, getPodcast, getPodcasts } from '../controllers/podcast.controller.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
-router.post('/:documentId/podcast', generatePodcast);
+router.post('/:documentId/podcast', authenticate, generatePodcast);
 
-router.get('/podcasts', getPodcasts);
+router.get('/podcasts', authenticate, getPodcasts);
+router.get('/podcasts/:podcastId', authenticate, getPodcast);
 
 export default router;

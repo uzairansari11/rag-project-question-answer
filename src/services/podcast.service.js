@@ -86,7 +86,11 @@ class PodcastService {
 
   async getAll() {
     const podcasts = await prisma.podcast.findMany({
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
         document: {
           select: {
             id: true,
@@ -99,17 +103,32 @@ class PodcastService {
       },
     });
 
-    return Promise.all(
-      podcasts.map(async (podcast) => {
-        const { audioKey, scriptKey, ...rest } = podcast;
+    return podcasts;
+  }
 
-        return {
-          ...rest,
-          audioUrl: audioKey ? await s3Service.getSignedUrl(audioKey) : null,
-          scriptUrl: scriptKey ? await s3Service.getSignedUrl(scriptKey) : null,
-        };
-      }),
-    );
+  async getPodcast(podcastId, userId) {
+    const podcast = await prisma.podcast.findFirst({
+      where: {
+        id: podcastId,
+        document: {
+          user: {
+            id: userId,
+          },
+        },
+      },
+    });
+    const { audioKey, scriptKey, ...rest } = podcast;
+
+    const [audioUrl, scriptUrl] = await Promise.all([
+      audioKey ? s3Service.getSignedUrl(audioKey) : null,
+      scriptKey ? s3Service.getSignedUrl(scriptKey) : null,
+    ]);
+
+    return {
+      ...rest,
+      audioUrl,
+      scriptUrl,
+    };
   }
 }
 
