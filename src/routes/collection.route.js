@@ -1,11 +1,5 @@
 import express from 'express';
-import {
-  createCollection,
-  deleteCollection,
-  getCollection,
-  getCollections,
-  updateCollection,
-} from '../controllers/collection.controller.js';
+import { collectionController } from '../controllers/collection.controller.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validation.middleware.js';
 import {
@@ -18,14 +12,26 @@ import {
 // collection.route.js
 const router = express.Router();
 
-router.get('/', authenticate, validate(getCollectionsSchema), getCollections);
+router.use(authenticate);
 
-router.post('/', authenticate, validate(createCollectionSchema), createCollection);
+collectionController;
 
-router.patch('/:collectionId', authenticate, validate(updateCollectionSchema), updateCollection);
+router.get('/', validate(getCollectionsSchema), collectionController.getCollections);
 
-router.delete('/:collectionId', authenticate, validate(deleteCollectionSchema), deleteCollection);
+router.post('/', validate(createCollectionSchema), collectionController.createCollection);
 
-router.get('/:collectionId', authenticate, validate(getCollectionSchema), getCollection);
+router.patch(
+  '/:collectionId',
+  validate(updateCollectionSchema),
+  collectionController.updateCollection,
+);
+
+router.delete(
+  '/:collectionId',
+  validate(deleteCollectionSchema),
+  collectionController.deleteCollection,
+);
+
+router.get('/:collectionId', validate(getCollectionSchema), collectionController.getCollection);
 
 export default router;

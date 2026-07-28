@@ -1,61 +1,74 @@
-// collection.controller.js
-
-import collectionService from '../services/collection.service.js';
+import { collectionService } from '../services/collection.service.js';
 import { asyncHandler } from '../utils/async.handler.js';
 import { successResponse } from '../utils/response.js';
 
-export const getCollections = asyncHandler(async (req, res) => {
-  const collections = await collectionService.getCollections(req.user.id);
+class CollectionController {
+  getCollections = asyncHandler(async (req, res) => {
+    const collections = await collectionService.getCollections({
+      user: req.user,
+    });
 
-  return successResponse({
-    res,
-    status: 200,
-    data: collections,
+    return successResponse({
+      res,
+      status: 200,
+      data: collections,
+    });
   });
-});
 
-export const createCollection = asyncHandler(async (req, res) => {
-  const collection = await collectionService.createCollection(req.user.id, req.body);
+  getCollection = asyncHandler(async (req, res) => {
+    const collection = await collectionService.getCollection({
+      user: req.user,
+      params: req.params,
+    });
 
-  return successResponse({
-    res,
-    status: 201,
-    message: 'Collection created successfully',
-    data: collection,
+    return successResponse({
+      res,
+      status: 200,
+      data: collection,
+    });
   });
-});
 
-export const updateCollection = asyncHandler(async (req, res) => {
-  const collection = await collectionService.updateCollection(
-    req.user.id,
-    req.params.collectionId,
-    req.body,
-  );
+  createCollection = asyncHandler(async (req, res) => {
+    const collection = await collectionService.createCollection({
+      user: req.user,
+      payload: req.body,
+    });
 
-  return successResponse({
-    res,
-    status: 200,
-    message: 'Collection updated successfully',
-    data: collection,
+    return successResponse({
+      res,
+      status: 201,
+      message: 'Collection created successfully',
+      data: collection,
+    });
   });
-});
 
-export const deleteCollection = asyncHandler(async (req, res) => {
-  await collectionService.deleteCollection(req.user.id, req.params.collectionId);
+  updateCollection = asyncHandler(async (req, res) => {
+    const collection = await collectionService.updateCollection({
+      user: req.user,
+      params: req.params,
+      payload: req.body,
+    });
 
-  return successResponse({
-    res,
-    status: 200,
-    message: 'Collection deleted successfully',
+    return successResponse({
+      res,
+      status: 200,
+      message: 'Collection updated successfully',
+      data: collection,
+    });
   });
-});
 
-export const getCollection = asyncHandler(async (req, res) => {
-  const collection = await collectionService.getCollection(req.user.id, req.params.collectionId);
+  deleteCollection = asyncHandler(async (req, res) => {
+    await collectionService.deleteCollection({
+      user: req.user,
+      params: req.params,
+    });
 
-  return successResponse({
-    res,
-    status: 200,
-    data: collection,
+    return successResponse({
+      res,
+      status: 200,
+      message: 'Collection deleted successfully',
+    });
   });
-});
+}
+
+export const collectionController = new CollectionController();

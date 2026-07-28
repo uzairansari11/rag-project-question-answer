@@ -1,54 +1,35 @@
-// collection.service.js
-
+import { UserRole } from '@prisma/client';
 import prisma from '../lib/prisma.js';
+import { collectDetailSelect, collectionSelect } from '../selects/collection.select.js';
+import { documentSelect } from '../selects/document.select.js';
 import { ApiError } from '../utils/api-error.js';
 
-const documentSelect = {
-  id: true,
-  title: true,
-  fileName: true,
-  status: true,
-  collectionId: true,
-  createdAt: true,
-  updatedAt: true,
-};
-
 class CollectionService {
-  async getCollections(userId) {
+  async getCollections({ user }) {
+    const where = user.role === UserRole.ADMIN ? {} : { userId: user.id };
+
     return prisma.collection.findMany({
-      where: {
-        userId,
-      },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        createdAt: true,
-        updatedAt: true,
-        _count: {
-          select: {
-            documents: true,
-          },
-        },
-      },
+      where,
+      select: collectionSelect,
       orderBy: {
         createdAt: 'desc',
       },
     });
   }
 
-  async getCollection(userId, collectionId) {
-    return prisma.collection.findFirst({
-      where: {
-        userId,
-        id: collectionId,
-      },
+  async getCollection({ user, params }) {
+    const where =
+      user.role === UserRole.ADMIN
+        ? { id: params.collectionId }
+        : {
+            id: params.collectionId,
+            userId: user.id,
+          };
+
+    const collection = await prisma.collection.findFirst({
+      where,
       select: {
-        id: true,
-        title: true,
-        description: true,
-        createdAt: true,
-        updatedAt: true,
+        ...collectDetailSelect,
         documents: {
           select: documentSelect,
           orderBy: {
@@ -56,17 +37,21 @@ class CollectionService {
           },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
     });
+
+    if (!collection) {
+      throw new ApiError(404, 'Collection not found');
+    }
+
+    return collection;
   }
-  async createCollection(userId, payload) {
+
+  async createCollection({ user, payload }) {
     const { title, description } = payload;
 
     const existingCollection = await prisma.collection.findFirst({
       where: {
-        userId,
+        userId: user.id,
         title,
       },
     });
@@ -79,26 +64,31 @@ class CollectionService {
       data: {
         title,
         description,
-        userId,
+        userId: user.id,
       },
       select: {
-        id: true,
-        title: true,
-        description: true,
-        createdAt: true,
+        ...collectDetailSelect,
         documents: {
           select: documentSelect,
+          orderBy: {
+            createdAt: 'asc',
+          },
         },
       },
     });
   }
 
-  async updateCollection(userId, collectionId, payload) {
+  async updateCollection({ user, params, payload }) {
+    const where =
+      user.role === UserRole.ADMIN
+        ? { id: params.collectionId }
+        : {
+            id: params.collectionId,
+            userId: user.id,
+          };
+
     const collection = await prisma.collection.findFirst({
-      where: {
-        id: collectionId,
-        userId,
-      },
+      where,
     });
 
     if (!collection) {
@@ -107,23 +97,24 @@ class CollectionService {
 
     return prisma.collection.update({
       where: {
-        id: collectionId,
+        id: collection.id,
       },
       data: payload,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        updatedAt: true,
-      },
+      select: collectDetailSelect,
     });
   }
-  async deleteCollection(userId, collectionId) {
+
+  async deleteCollection({ user, params }) {
+    const where =
+      user.role === UserRole.ADMIN
+        ? { id: params.collectionId }
+        : {
+            id: params.collectionId,
+            userId: user.id,
+          };
+
     const collection = await prisma.collection.findFirst({
-      where: {
-        id: collectionId,
-        userId,
-      },
+      where,
     });
 
     if (!collection) {
@@ -132,10 +123,10 @@ class CollectionService {
 
     await prisma.collection.delete({
       where: {
-        id: collectionId,
+        id: collection.id,
       },
     });
   }
 }
 
-export default new CollectionService();
+export const collectionService = new CollectionService();
