@@ -2,9 +2,11 @@ import { zodResponseFormat } from 'openai/helpers/zod.mjs';
 import { z } from 'zod';
 import openai from '../config/openai.js';
 import { buildAnswerPrompt } from '../prompt/answer.prompt.js';
+import { FLASHCARDS_PROMPT } from '../prompt/flashcard.prompt.js';
 import { GUARDRAIL_PROMPT } from '../prompt/input-guardrail.prompt.js';
 import { PODCAST_PROMPT } from '../prompt/podcast.prompt.js';
 import { SYSTEM_PROMPT } from '../prompt/system.prompt.js';
+import { FlashcardsSchema } from '../schema/flashcard.schema.js';
 import { PodcastSchema } from '../schema/podcast.schema.js';
 
 const GuardrailSchema = z.object({
@@ -87,6 +89,15 @@ class LLMService {
       query: document,
       schema: PodcastSchema,
       schemaName: 'PodcastResponse',
+    });
+  }
+
+  async generateFlashcards({ document }) {
+    return this.#generate({
+      prompt: FLASHCARDS_PROMPT,
+      query: document,
+      schema: FlashcardsSchema,
+      schemaName: 'FlashcardsResponse',
     });
   }
 }

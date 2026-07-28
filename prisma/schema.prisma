@@ -6,6 +6,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id          String       @id @default(uuid())
   email       String       @unique
@@ -17,6 +22,11 @@ model User {
   collections Collection[]
   documents   Document[]
   chats       Chat[]
+
+  role UserRole @default(USER)
+
+  @@index([id, email])
+  @@index([firstName, lastName])
 }
 
 model Collection {
@@ -58,6 +68,7 @@ model Document {
   updatedAt     DateTime       @updatedAt
   chatDocuments ChatDocument[]
   podcasts      Podcast[]
+  flashcardSets FlashcardSet[]
 }
 
 enum DocumentStatus {
@@ -138,4 +149,43 @@ model Podcast {
 
   @@index([documentId])
   @@index([status])
+}
+
+model FlashcardSet {
+  id String @id @default(uuid())
+
+  documentId String
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  title       String?
+  description String?
+
+  status FlashcardStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  updatedAt  DateTime    @updatedAt
+  flashcards Flashcard[]
+
+  @@index([title])
+}
+
+enum FlashcardStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model Flashcard {
+  id String @id @default(uuid())
+
+  flashcardSetId String
+  flashcardSet   FlashcardSet @relation(fields: [flashcardSetId], references: [id], onDelete: Cascade)
+
+  question String
+  answer   String
+
+  createdAt DateTime @default(now())
 }

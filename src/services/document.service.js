@@ -68,6 +68,20 @@ class DocumentService {
       data,
     });
   }
+  async getUserDocumentById(documentId, userId) {
+    const document = await prisma.document.findFirst({
+      where: {
+        id: documentId,
+        userId,
+      },
+    });
+
+    if (!document) {
+      throw new AppError('Document not found.', 404);
+    }
+
+    return document;
+  }
 }
 
 export default new DocumentService();

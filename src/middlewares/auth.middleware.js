@@ -26,6 +26,7 @@ export const authenticate = asyncHandler(async (req, res, next) => {
       firstName: true,
       lastName: true,
       email: true,
+      role: true,
     },
   });
 
