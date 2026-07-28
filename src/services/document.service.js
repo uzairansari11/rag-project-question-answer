@@ -1,17 +1,23 @@
+import { UserRole } from '@prisma/client';
 import crypto from 'node:crypto';
 import prisma from '../lib/prisma.js';
+import { documentSelect } from '../selects/document.select.js';
+import { ApiError } from '../utils/api-error.js';
 import s3Service from './s3.service.js';
+
 class DocumentService {
-  async uploadDocument({ file, body, userId }) {
+  async uploadDocument({ user, file, payload }) {
     const documentId = crypto.randomUUID();
+
     const uploadedFile = await s3Service.uploadFile(documentId, file);
+
     try {
-      const document = await prisma.document.create({
+      return prisma.document.create({
         data: {
           id: documentId,
-          title: body.title,
-          collectionId: body.collectionId,
-          userId,
+          title: payload.title,
+          collectionId: payload.collectionId,
+          userId: user.id,
           fileName: uploadedFile.fileName,
           storageKey: uploadedFile.key,
           mimeType: uploadedFile.mimeType,
@@ -19,69 +25,81 @@ class DocumentService {
           status: 'PROCESSING',
         },
       });
-      return document;
     } catch (error) {
       await s3Service.deleteFile(uploadedFile.key);
-
       throw error;
     }
   }
-  async getDocumentById(documentId) {
-    return await prisma.document.findUnique({
-      where: {
-        id: documentId,
-      },
-    });
-  }
-  async getDocuments(userId) {
-    return await prisma.document.findMany({
-      where: {
-        userId: userId,
-      },
-      select: {
-        id: true,
-        title: true,
-        fileName: true,
-        storageKey: true,
-        mimeType: true,
-        fileSize: true,
-        errorMessage: true,
-        status: true,
-        processedAt: true,
-        createdAt: true,
-        collection: {
-          select: {
-            title: true,
-          },
-        },
-      },
+
+  async getDocuments({ user }) {
+    const where = user.role === UserRole.ADMIN ? {} : { userId: user.id };
+
+    return prisma.document.findMany({
+      where,
+      select: documentSelect,
       orderBy: {
         createdAt: 'desc',
       },
     });
   }
-  async updateDocument(documentId, data) {
-    return prisma.document.update({
-      where: {
-        id: documentId,
-      },
-      data,
-    });
-  }
-  async getUserDocumentById(documentId, userId) {
+
+  async getDocumentById({ user, params }) {
+    const where =
+      user.role === UserRole.ADMIN
+        ? { id: params.documentId }
+        : {
+            id: params.documentId,
+            userId: user.id,
+          };
+
     const document = await prisma.document.findFirst({
-      where: {
-        id: documentId,
-        userId,
-      },
+      where,
     });
 
     if (!document) {
-      throw new AppError('Document not found.', 404);
+      throw new ApiError(404, 'Document not found.');
     }
 
     return document;
   }
+
+  async updateDocument({ user, params, payload }) {
+    const document = await this.getDocumentById({
+      user,
+      params,
+    });
+
+    return prisma.document.update({
+      where: {
+        id: document.id,
+      },
+      data: payload,
+    });
+  }
+
+  async deleteDocument({ user, params }) {
+    const document = await this.getDocumentById({
+      user,
+      params,
+    });
+
+    await s3Service.deleteFile(document.storageKey);
+
+    await prisma.document.delete({
+      where: {
+        id: document.id,
+      },
+    });
+  }
+
+  async updateDocumentStatus({ params, payload }) {
+    return prisma.document.update({
+      where: {
+        id: params.documentId,
+      },
+      data: payload,
+    });
+  }
 }
 
-export default new DocumentService();
+export const documentService = new DocumentService();

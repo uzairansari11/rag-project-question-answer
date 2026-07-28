@@ -1,6 +1,6 @@
 import { FlashcardStatus } from '@prisma/client';
 import prisma from '../lib/prisma.js';
-import documentService from './document.service.js';
+import { documentService } from './document.service.js';
 import llmService from './llm.service.js';
 import s3Service from './s3.service.js';
 
@@ -12,7 +12,7 @@ class FlashcardService {
   }
 
   async generate({ documentId, userId }) {
-    const document = await documentService.getUserDocumentById(documentId, userId);
+    const document = await documentService.getDocumentById({ params: { documentId } });
 
     const flashcardSet = await this.createFlashcardSet({
       documentId,

@@ -1,7 +1,7 @@
 import { UserRole } from '@prisma/client';
 import prisma from '../lib/prisma.js';
 import { collectDetailSelect, collectionSelect } from '../selects/collection.select.js';
-import { documentSelect } from '../selects/document.select.js';
+import { documentSelectForCollection } from '../selects/document.select.js';
 import { ApiError } from '../utils/api-error.js';
 
 class CollectionService {
@@ -31,7 +31,7 @@ class CollectionService {
       select: {
         ...collectDetailSelect,
         documents: {
-          select: documentSelect,
+          select: documentSelectForCollection,
           orderBy: {
             createdAt: 'asc',
           },
@@ -69,7 +69,7 @@ class CollectionService {
       select: {
         ...collectDetailSelect,
         documents: {
-          select: documentSelect,
+          select: documentSelectForCollection,
           orderBy: {
             createdAt: 'asc',
           },

@@ -1,6 +1,6 @@
 import { PodcastStatus } from '@prisma/client';
 import prisma from '../lib/prisma.js';
-import documentService from './document.service.js';
+import { documentService } from './document.service.js';
 import llmService from './llm.service.js';
 import s3Service from './s3.service.js';
 import ttsService from './tts.service.js';
@@ -22,7 +22,7 @@ class PodcastService {
   }
 
   async generate(documentId) {
-    const { textKey } = await documentService.getDocumentById(documentId);
+    const { textKey } = await documentService.getDocumentById({ params: { documentId } });
 
     // Create podcast record
     const podcast = await this.#create({
