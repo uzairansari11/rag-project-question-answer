@@ -1,7 +1,7 @@
 export const QUEUE_NAMES = {
   DOCUMENT_PROCESSING: 'document-processing',
   EMAIL_PROCESSING: 'email-processing',
-  NOTIFICATION: 'notification',
+  FLASHCARD: 'flashcard',
   PODCAST: 'podcast',
 };
 
