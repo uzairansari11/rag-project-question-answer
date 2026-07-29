@@ -100,6 +100,30 @@ class DocumentService {
       data: payload,
     });
   }
+
+  /*  */
+  async getDocumentByIdInternal({ params }) {
+    const document = await prisma.document.findUnique({
+      where: {
+        id: params.documentId,
+      },
+    });
+
+    if (!document) {
+      throw new ApiError(404, 'Document not found.');
+    }
+
+    return document;
+  }
+
+  async updateDocumentStatus({ params, payload }) {
+    return prisma.document.update({
+      where: {
+        id: params.documentId,
+      },
+      data: payload,
+    });
+  }
 }
 
 export const documentService = new DocumentService();

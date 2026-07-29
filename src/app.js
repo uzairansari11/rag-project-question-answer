@@ -27,9 +27,9 @@ app.use('/user', userRouter);
 
 app.use('/collection', collectionRouter);
 
+app.use('/podcasts', podcastRouter);
+app.use('/flashcards', flashcardRouter);
 app.use('/documents', documentRouter);
-app.use('/documents', podcastRouter);
-app.use('/documents', flashcardRouter);
 
 app.use('/chat', chatRouter);
 app.use('/chat', messageRouter);

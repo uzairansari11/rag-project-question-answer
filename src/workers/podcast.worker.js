@@ -1,11 +1,9 @@
 import { Worker } from 'bullmq';
 import { connection } from '../config/redis.js';
 import { QUEUE_NAMES } from '../constants/queue.constants.js';
-import { processDocumentJob } from '../jobs/document.job.js';
+import { processPodcastJob } from '../jobs/podcast.job.js';
 
-const worker = new Worker(QUEUE_NAMES.DOCUMENT_PROCESSING, processDocumentJob, {
-  connection: connection,
-});
+export const worker = new Worker(QUEUE_NAMES.PODCAST, processPodcastJob, { connection });
 
 worker.on('completed', (job) => {
   console.log(`Job ${job.id} completed`);

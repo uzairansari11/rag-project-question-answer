@@ -92,13 +92,13 @@ class S3Service {
     };
   }
 
-  async uploadPodcastAudio({ documentId, podcastId, buffer }) {
+  async uploadPodcastAudio({ documentId, podcastId, audio }) {
     const key = `documents/${documentId}/podcasts/${podcastId}/audio.mp3`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: key,
-      Body: buffer,
+      Body: audio,
       ContentType: 'audio/mpeg',
     });
 
@@ -107,7 +107,7 @@ class S3Service {
     return {
       key,
       mimeType: 'audio/mpeg',
-      fileSize: buffer.length,
+      fileSize: audio.length,
     };
   }
 

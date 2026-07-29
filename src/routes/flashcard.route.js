@@ -8,10 +8,10 @@ import { authenticate } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
-router.post('/:documentId/flashcards', authenticate, generateFlashCard);
+router.post('/generate/:documentId', authenticate, generateFlashCard);
 
-router.get('/flashcards', authenticate, getFlashCards);
+router.get('/', authenticate, getFlashCards);
 
-router.get('/flashcards/:flashcardSetId', authenticate, getFlashCard);
+router.get('/:flashcardSetId', authenticate, getFlashCard);
 
 export default router;
