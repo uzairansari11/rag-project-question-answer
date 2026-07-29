@@ -3,15 +3,20 @@ import {
   generateFlashCard,
   getFlashCard,
   getFlashCards,
+  deleteFlashCard,
 } from '../controllers/flashcard.controller.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
-router.post('/generate/:documentId', authenticate, generateFlashCard);
+router.use(authenticate);
 
-router.get('/', authenticate, getFlashCards);
+router.post('/generate/:documentId', generateFlashCard);
 
-router.get('/:flashcardSetId', authenticate, getFlashCard);
+router.get('/', getFlashCards);
+
+router.get('/:flashcardSetId', getFlashCard);
+
+router.delete('/:flashcardSetId', deleteFlashCard);
 
 export default router;
